@@ -10,6 +10,7 @@ import { ChevronLeft, ShoppingCart } from 'lucide-react';
 export default function ComboDetailPage() {
   const [, params] = useRoute('/combo/:id');
   const [, navigate] = useLocation();
+  const utils = trpc.useUtils();
   const { user } = useAuth();
   const [cartItemCount, setCartItemCount] = useState(0);
 
@@ -17,7 +18,7 @@ export default function ComboDetailPage() {
 
   // Fetch data
   const { data: combo } = trpc.combos.byId.useQuery({ id: comboId });
-  const { data: cartItems } = trpc.cart.list.useQuery(undefined, { enabled: !!user });
+  const { data: cartItems } = trpc.cart.list.useQuery();
 
   // Update cart count
   useEffect(() => {
@@ -29,7 +30,7 @@ export default function ComboDetailPage() {
   const addToCartMutation = trpc.cart.add.useMutation({
     onSuccess: () => {
       toast.success('Combo added to cart!');
-      trpc.useUtils().cart.list.invalidate();
+      utils.cart.list.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to add to cart');
@@ -37,10 +38,6 @@ export default function ComboDetailPage() {
   });
 
   const handleAddToCart = () => {
-    if (!user) {
-      toast.error('Please log in to add items to cart');
-      return;
-    }
     addToCartMutation.mutate({ comboId, quantity: 1 });
   };
 

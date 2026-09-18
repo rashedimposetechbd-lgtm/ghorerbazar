@@ -10,6 +10,7 @@ import { ChevronLeft, Plus, Minus, ShoppingCart } from 'lucide-react';
 export default function ProductDetailPage() {
   const [, params] = useRoute('/product/:id');
   const [, navigate] = useLocation();
+  const utils = trpc.useUtils();
   const { user } = useAuth();
   const [cartItemCount, setCartItemCount] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -18,7 +19,7 @@ export default function ProductDetailPage() {
 
   // Fetch data
   const { data: product } = trpc.products.byId.useQuery({ id: productId });
-  const { data: cartItems } = trpc.cart.list.useQuery(undefined, { enabled: !!user });
+  const { data: cartItems } = trpc.cart.list.useQuery();
 
   // Update cart count
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function ProductDetailPage() {
     onSuccess: () => {
       toast.success(`Added ${quantity} item(s) to cart!`);
       setQuantity(1);
-      trpc.useUtils().cart.list.invalidate();
+      utils.cart.list.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to add to cart');
@@ -39,10 +40,6 @@ export default function ProductDetailPage() {
   });
 
   const handleAddToCart = () => {
-    if (!user) {
-      toast.error('Please log in to add items to cart');
-      return;
-    }
     addToCartMutation.mutate({ productId, quantity });
   };
 

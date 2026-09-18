@@ -20,6 +20,21 @@ export async function createContext(
     user = null;
   }
 
+  // Provide fallback user for local/preview environment when OAuth is not configured
+  if (!user && !process.env.OAUTH_SERVER_URL) {
+    user = {
+      id: 1,
+      openId: "demo-user-1",
+      name: "Guest Shopper",
+      email: "guest@ghorerbazar.com",
+      loginMethod: "guest",
+      role: "user",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    };
+  }
+
   return {
     req: opts.req,
     res: opts.res,

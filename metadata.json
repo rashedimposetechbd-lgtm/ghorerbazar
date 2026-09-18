@@ -1,0 +1,6 @@
+{
+  "name": "Ghorer Bazar",
+  "description": "An organic grocery and e-commerce store offering natural honeys, ghee, mustard oil, premium dates, and assorted food combos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

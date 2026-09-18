@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import BrandShowcase from '@/components/BrandShowcase';
 
 export default function Home() {
+  const utils = trpc.useUtils();
   const { user } = useAuth();
   const [cartItemCount, setCartItemCount] = useState(0);
 
@@ -16,7 +17,7 @@ export default function Home() {
   const { data: topSelling } = trpc.products.topSelling.useQuery({ limit: 8 });
   const { data: combos } = trpc.combos.list.useQuery();
   const { data: allProducts } = trpc.products.list.useQuery();
-  const { data: cartItems } = trpc.cart.list.useQuery(undefined, { enabled: !!user });
+  const { data: cartItems } = trpc.cart.list.useQuery();
 
   useEffect(() => {
     if (cartItems) setCartItemCount(cartItems.length);
@@ -25,7 +26,7 @@ export default function Home() {
   const addToCartMutation = trpc.cart.add.useMutation({
     onSuccess: () => {
       toast.success('Added to cart!');
-      trpc.useUtils().cart.list.invalidate();
+      utils.cart.list.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to add to cart');
@@ -33,10 +34,6 @@ export default function Home() {
   });
 
   const handleAddToCart = (productId: number) => {
-    if (!user) {
-      toast.error('Please log in to add items to cart');
-      return;
-    }
     addToCartMutation.mutate({ productId, quantity: 1 });
   };
 

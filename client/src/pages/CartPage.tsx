@@ -13,7 +13,7 @@ export default function CartPage() {
   const [cartItemCount, setCartItemCount] = useState(0);
 
   // Fetch cart items
-  const { data: cartItems, refetch } = trpc.cart.list.useQuery(undefined, { enabled: !!user });
+  const { data: cartItems, refetch } = trpc.cart.list.useQuery();
 
   // Mutations
   const updateQuantityMutation = trpc.cart.updateQuantity.useMutation({
