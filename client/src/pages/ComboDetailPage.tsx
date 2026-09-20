@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { toast } from 'sonner';
@@ -175,6 +176,7 @@ export default function ComboDetailPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

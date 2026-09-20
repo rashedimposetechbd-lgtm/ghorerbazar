@@ -3,6 +3,7 @@ import { useRoute, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import ProductCard from '@/components/ProductCard';
 import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { toast } from 'sonner';
@@ -98,6 +99,7 @@ export default function CategoryPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

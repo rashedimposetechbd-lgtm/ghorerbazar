@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { trpc } from "@/lib/trpc";
 import { ShieldCheck, Lock, Mail, ArrowRight, CheckCircle2, User } from "lucide-react";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
   const { login, demoLogin, isLoading } = useAdminAuth();
+  const { data: settings } = trpc.storefront.settings.useQuery();
+  const siteName = settings?.siteName || "Babui Shop";
   const [email, setEmail] = useState("admin@ghorerbazar.com");
   const [password, setPassword] = useState("admin123456");
   const [errorMsg, setErrorMsg] = useState("");
@@ -38,10 +41,14 @@ export default function AdminLogin() {
       <div className="w-full max-w-md bg-slate-800/90 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl p-8 relative z-10">
         {/* Brand identity header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-black text-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-900/40 mb-3">
-            G
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Ghorer Bazar</h1>
+          {settings?.siteLogo ? (
+            <img src={settings.siteLogo} alt={siteName} className="w-14 h-14 object-contain rounded-2xl mx-auto mb-3 shadow-lg" />
+          ) : (
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-black text-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-900/40 mb-3">
+              {siteName.charAt(0)}
+            </div>
+          )}
+          <h1 className="text-2xl font-bold tracking-tight text-white">{siteName}</h1>
           <p className="text-xs text-emerald-400 font-medium tracking-wide uppercase mt-1">
             Back Office &amp; CMS Portal
           </p>

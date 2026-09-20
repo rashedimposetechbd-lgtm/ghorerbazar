@@ -37,6 +37,7 @@ import {
   Check,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface NavItem {
   name: string;
@@ -62,14 +63,16 @@ export default function AdminLayout({
 }) {
   const [location, setLocation] = useLocation();
   const { admin, logout, hasPermission } = useAdminAuth();
+  const { theme, toggleTheme } = useTheme();
+  const isDarkMode = theme === "dark";
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Live queries for real badges
+  const { data: settings } = trpc.admin.settings.get.useQuery();
   const { data: notifications = [], refetch: refetchNotifs } = trpc.admin.notifications.list.useQuery();
   const markReadMutation = trpc.admin.notifications.markRead.useMutation();
   const markAllReadMutation = trpc.admin.notifications.markAllRead.useMutation();
@@ -80,14 +83,7 @@ export default function AdminLayout({
   const pendingOrdersCount = ordersList.filter((o) => o.orderStatus === "pending").length;
   const lowStockCount = productsList.filter((p) => p.stock <= p.lowStockThreshold).length;
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    if (!isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
+  const siteName = settings?.siteName || "Babui Shop";
 
   const navGroups: NavGroup[] = [
     {
@@ -183,13 +179,17 @@ export default function AdminLayout({
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800">
           <Link href="/admin/dashboard" className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xl shadow-md shrink-0">
-              G
-            </div>
+            {settings?.siteLogo ? (
+              <img src={settings.siteLogo} alt={siteName} className="w-10 h-10 object-contain rounded-xl shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xl shadow-md shrink-0">
+                {siteName.charAt(0)}
+              </div>
+            )}
             {!isCollapsed && (
-              <div className="flex flex-col">
-                <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white leading-tight">
-                  Ghorer Bazar
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white leading-tight truncate">
+                  {siteName}
                 </span>
                 <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                   Admin CMS
@@ -381,11 +381,11 @@ export default function AdminLayout({
 
             {/* Dark / Light Toggle */}
             <button
-              onClick={toggleDarkMode}
+              onClick={toggleTheme}
               className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 transition-colors"
               title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
-              {isDarkMode ? <Sun size={17} /> : <Moon size={17} />}
+              {isDarkMode ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} />}
             </button>
 
             {/* Notification Center */}

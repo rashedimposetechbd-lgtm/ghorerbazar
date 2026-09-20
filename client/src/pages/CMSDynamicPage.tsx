@@ -2,6 +2,7 @@ import React from "react";
 import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import { FileText, ArrowLeft, ShieldCheck } from "lucide-react";
 
 export default function CMSDynamicPage() {
@@ -49,9 +50,7 @@ export default function CMSDynamicPage() {
         )}
       </main>
 
-      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        <p>© {new Date().getFullYear()} Ghorer Bazar. 100% Pure &amp; Organic Food in Bangladesh.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { toast } from 'sonner';
 import BrandShowcase from '@/components/BrandShowcase';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   const utils = trpc.useUtils();
@@ -249,39 +250,7 @@ export default function Home() {
         </section>
       )}
 
-      <footer>
-        <div className="container gb-footer__grid">
-          <div>
-            <h3>Ghorer Bazar</h3>
-            <p>Premium natural foods and groceries for your kitchen.</p>
-          </div>
-          <div>
-            <h4>Categories</h4>
-            <ul>
-              <li><Link href="/category/1">Oil &amp; Ghee</Link></li>
-              <li><Link href="/category/2">Honey</Link></li>
-              <li><Link href="/category/3">Dates</Link></li>
-              <li><Link href="/category/4">Spices</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4>Support</h4>
-            <ul>
-              <li><a href="tel:+8809642922922">Contact</a></li>
-              <li><a href="/">FAQs</a></li>
-              <li><a href="/">Shipping</a></li>
-              <li><a href="/">Privacy Policy</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4>Visit Us</h4>
-            <p>Rampura, Dhaka, Bangladesh</p>
-            <p>contact@ghorerbazar.com</p>
-            <p>+8809642922922</p>
-          </div>
-        </div>
-        <div className="gb-footer__bottom">© 2026 Ghorer Bazar. All rights reserved.</div>
-      </footer>
+      <Footer />
     </div>
   );
 }

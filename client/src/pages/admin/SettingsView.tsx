@@ -19,12 +19,16 @@ import { toast } from "sonner";
 
 export default function SettingsView() {
   const [location, setLocation] = useLocation();
+  const utils = trpc.useUtils();
   const { data: settings, refetch, isLoading } = trpc.admin.settings.get.useQuery();
   const updateMutation = trpc.admin.settings.update.useMutation();
 
   const { data: gateways = [], refetch: refetchGateways } =
     trpc.admin.shippingPayment.getPaymentGateways.useQuery();
   const updateGatewaysMutation = trpc.admin.shippingPayment.updatePaymentGateways.useMutation();
+
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
 
   const [activeTab, setActiveTab] = useState<"general" | "shipping" | "payment" | "seo" | "social">(() => {
     if (typeof window !== "undefined") {
@@ -83,23 +87,25 @@ export default function SettingsView() {
   // Sync state
   React.useEffect(() => {
     if (settings) {
-      setSiteName(settings.siteName || "Ghorer Bazar");
-      setSiteTagline(settings.siteTitle || "Pure and Safe Food in Bangladesh");
-      setLogoUrl(settings.siteLogo || "");
-      setFaviconUrl(settings.siteFavicon || "");
-      setSiteEmail(settings.siteEmail || "support@ghorerbazar.com");
-      setSitePhone(settings.sitePhone || "+8809642922922");
-      setSiteWhatsApp(settings.siteWhatsApp || "+8801700000000");
-      setSiteAddress(settings.siteAddress || "House 12, Road 4, Dhanmondi, Dhaka 1205");
+      setSiteName(settings.siteName ?? "");
+      setSiteTagline(settings.siteTitle ?? "");
+      setMetaTitle(settings.siteTitle ?? "");
+      setMetaDescription(settings.metaDescription ?? "");
+      setLogoUrl(settings.siteLogo ?? "");
+      setFaviconUrl(settings.siteFavicon ?? "");
+      setSiteEmail(settings.siteEmail ?? "");
+      setSitePhone(settings.sitePhone ?? "");
+      setSiteWhatsApp(settings.siteWhatsApp ?? "");
+      setSiteAddress(settings.siteAddress ?? "");
 
       setShippingFeeDhaka(settings.shippingInsideDhaka ?? 70);
       setShippingFeeOutside(settings.shippingOutsideDhaka ?? 130);
       setFreeShippingThreshold(settings.freeShippingThreshold ?? 1500);
 
-      setSocialFacebook(settings.facebookUrl || "https://facebook.com/ghorerbazarbd");
-      setSocialInstagram(settings.instagramUrl || "https://instagram.com/ghorerbazar");
-      setSocialYouTube(settings.youtubeUrl || "https://youtube.com/@ghorerbazar");
-      setSocialTikTok(settings.tiktokUrl || "https://tiktok.com/@ghorerbazar");
+      setSocialFacebook(settings.facebookUrl ?? "");
+      setSocialInstagram(settings.instagramUrl ?? "");
+      setSocialYouTube(settings.youtubeUrl ?? "");
+      setSocialTikTok(settings.tiktokUrl ?? "");
     }
   }, [settings]);
 
@@ -123,12 +129,66 @@ export default function SettingsView() {
     }
   }, [gateways]);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, targetField: "logo" | "favicon") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image file size must be under 5MB");
+      return;
+    }
+
+    if (targetField === "logo") setIsUploadingLogo(true);
+    else setIsUploadingFavicon(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64 = reader.result as string;
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              filename: file.name,
+              dataBase64: base64,
+              folder: "branding",
+            }),
+          });
+          const data = await res.json();
+          if (data.success && data.url) {
+            if (targetField === "logo") {
+              setLogoUrl(data.url);
+              toast.success("Logo uploaded successfully!");
+            } else {
+              setFaviconUrl(data.url);
+              toast.success("Favicon uploaded successfully!");
+            }
+          } else {
+            toast.error(data.error || "Failed to upload image");
+          }
+        } catch (err: any) {
+          toast.error(err.message || "Upload request failed");
+        } finally {
+          setIsUploadingLogo(false);
+          setIsUploadingFavicon(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      setIsUploadingLogo(false);
+      setIsUploadingFavicon(false);
+      toast.error(err.message || "Upload failed");
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await updateMutation.mutateAsync({
         siteName,
-        siteTitle: siteTagline,
+        siteTitle: activeTab === "seo" ? metaTitle : (siteTagline || metaTitle),
+        metaDescription,
         siteLogo: logoUrl,
         siteFavicon: faviconUrl,
         siteEmail,
@@ -144,7 +204,10 @@ export default function SettingsView() {
         tiktokUrl: socialTikTok,
       });
 
-      // Update payment gateways
+      // Update payment gateways preserving real or inputted numbers
+      const existingBkash = gateways.find((g) => g.id === "bkash")?.merchantNumber || "01712345678";
+      const existingNagad = gateways.find((g) => g.id === "nagad")?.merchantNumber || "01911223344";
+
       await updateGatewaysMutation.mutateAsync([
         {
           id: "cod",
@@ -158,7 +221,7 @@ export default function SettingsView() {
           name: "bKash Payment",
           isEnabled: bkashEnabled,
           mode: "live",
-          merchantNumber: bkashNumber || "017XXXXXXXX",
+          merchantNumber: bkashNumber.trim() || existingBkash,
           instructions: "Pay via bKash Merchant or Send Money",
         },
         {
@@ -166,7 +229,7 @@ export default function SettingsView() {
           name: "Nagad Payment",
           isEnabled: nagadEnabled,
           mode: "live",
-          merchantNumber: nagadNumber || "018XXXXXXXX",
+          merchantNumber: nagadNumber.trim() || existingNagad,
           instructions: "Pay via Nagad Merchant or Send Money",
         },
         {
@@ -178,7 +241,12 @@ export default function SettingsView() {
         },
       ]);
 
-      toast.success("Settings saved successfully!");
+      // Invalidate both admin and storefront queries so changes are immediately live!
+      await utils.admin.settings.get.invalidate();
+      await utils.storefront.settings.invalidate();
+      await utils.admin.shippingPayment.getPaymentGateways.invalidate();
+
+      toast.success("Settings saved successfully and applied across the entire site!");
       refetch();
       refetchGateways();
     } catch (err: any) {
@@ -298,25 +366,65 @@ export default function SettingsView() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Logo URL</label>
-                <input
-                  type="text"
-                  value={logoUrl}
-                  onChange={(e) => setLogoUrl(e.target.value)}
-                  placeholder="https://.../logo.png"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Company Logo</label>
+                  <label className="cursor-pointer text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                    <Upload size={12} />
+                    <span>{isUploadingLogo ? "Uploading..." : "Upload Logo"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={isUploadingLogo}
+                      onChange={(e) => handleFileUpload(e, "logo")}
+                    />
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={logoUrl}
+                    onChange={(e) => setLogoUrl(e.target.value)}
+                    placeholder="https://.../logo.png or upload image"
+                    className="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
+                  />
+                  {logoUrl && (
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 flex items-center justify-center shrink-0">
+                      <img src={logoUrl} alt="Logo preview" className="max-w-full max-h-full object-contain" />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
-                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Favicon URL</label>
-                <input
-                  type="text"
-                  value={faviconUrl}
-                  onChange={(e) => setFaviconUrl(e.target.value)}
-                  placeholder="https://.../favicon.ico"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Favicon</label>
+                  <label className="cursor-pointer text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                    <Upload size={12} />
+                    <span>{isUploadingFavicon ? "Uploading..." : "Upload Favicon"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={isUploadingFavicon}
+                      onChange={(e) => handleFileUpload(e, "favicon")}
+                    />
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={faviconUrl}
+                    onChange={(e) => setFaviconUrl(e.target.value)}
+                    placeholder="https://.../favicon.ico or upload image"
+                    className="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
+                  />
+                  {faviconUrl && (
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 flex items-center justify-center shrink-0">
+                      <img src={faviconUrl} alt="Favicon preview" className="max-w-full max-h-full object-contain" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

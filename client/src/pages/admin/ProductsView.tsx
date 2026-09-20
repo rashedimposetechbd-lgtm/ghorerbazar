@@ -36,6 +36,8 @@ interface VariantInput {
 }
 
 export default function ProductsView() {
+  const { data: settings } = trpc.admin.settings.get.useQuery();
+  const storeName = settings?.siteName || "Store";
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
   const [selectedBrand, setSelectedBrand] = useState<number | undefined>();
@@ -737,7 +739,7 @@ export default function ProductsView() {
                   {editingId ? "Edit Product" : "Create New Product"}
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Fill in the attributes and customize presentation for Ghorer Bazar.
+                  Fill in the attributes and customize presentation for {storeName}.
                 </p>
               </div>
               <button
@@ -916,7 +918,7 @@ export default function ProductsView() {
                         onChange={(e) => setBrandId(e.target.value ? Number(e.target.value) : undefined)}
                         className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
                       >
-                        <option value="">Ghorer Bazar In-House</option>
+                        <option value="">{storeName} In-House</option>
                         {brands.map((b) => (
                           <option key={b.id} value={b.id}>
                             {b.name}
@@ -1386,10 +1388,10 @@ export default function ProductsView() {
                       Google Search Preview
                     </span>
                     <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-                      {metaTitle || name || "Product Name"} | Ghorer Bazar
+                      {metaTitle || name || "Product Name"} | {storeName}
                     </h4>
                     <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-0.5">
-                      https://ghorerbazar.com/product/{slug || "item"}
+                      /product/{slug || "item"}
                     </p>
                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                       {metaDescription || shortDescription || "Buy 100% natural, unadulterated food products online with fast delivery in Bangladesh."}

@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 
 export default function HeaderNavView() {
+  const utils = trpc.useUtils();
   const { data: settings, refetch: refetchSettings } = trpc.admin.settings.get.useQuery();
   const { data: initialNavItems = [], refetch: refetchNav } = trpc.admin.navMenu.get.useQuery();
   const updateSettingsMutation = trpc.admin.settings.update.useMutation();
@@ -35,10 +36,10 @@ export default function HeaderNavView() {
 
   React.useEffect(() => {
     if (settings) {
-      setAnnouncementText(settings.announcementText || "Free delivery over ৳1,500 • Support: +8809642922922");
+      setAnnouncementText(settings.announcementText ?? "");
       setAnnouncementEnabled(settings.announcementEnabled ?? true);
-      setSitePhone(settings.sitePhone || "+8809642922922");
-      setSiteWhatsApp(settings.siteWhatsApp || "+8801700000000");
+      setSitePhone(settings.sitePhone ?? "");
+      setSiteWhatsApp(settings.siteWhatsApp ?? "");
       setHeaderHotlineEnabled(settings.headerHotlineEnabled ?? true);
       setHeaderWhatsAppEnabled(settings.headerWhatsAppEnabled ?? true);
     }
@@ -61,6 +62,8 @@ export default function HeaderNavView() {
         headerHotlineEnabled,
         headerWhatsAppEnabled,
       });
+      await utils.admin.settings.get.invalidate();
+      await utils.storefront.settings.invalidate();
       toast.success("Header & Announcement bar settings updated!");
       refetchSettings();
     } catch (err: any) {
@@ -112,6 +115,8 @@ export default function HeaderNavView() {
   const handleSaveNavItems = async () => {
     try {
       await updateNavMutation.mutateAsync(navItems);
+      await utils.admin.navMenu.get.invalidate();
+      await utils.storefront.navMenu.invalidate();
       toast.success("Navigation menu updated!");
       refetchNav();
     } catch (err: any) {

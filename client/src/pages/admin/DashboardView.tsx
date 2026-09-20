@@ -55,7 +55,7 @@ export default function DashboardView() {
             E-Commerce Performance Overview
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Real-time sales analytics, order statuses, and inventory tracking for Ghorer Bazar.
+            Real-time sales analytics, order statuses, and inventory tracking for your store.
           </p>
         </div>
         <div className="flex items-center gap-2">

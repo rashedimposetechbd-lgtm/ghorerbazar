@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import ComboCard from '@/components/ComboCard';
 import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { ChevronLeft } from 'lucide-react';
@@ -69,6 +70,7 @@ export default function CombosPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

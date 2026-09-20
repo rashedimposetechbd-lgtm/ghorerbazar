@@ -548,18 +548,26 @@ export default function OrdersView() {
               <div className="flex justify-between items-start border-b pb-6">
                 <div>
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold text-lg flex items-center justify-center">
-                      G
-                    </div>
+                    {settings?.siteLogo ? (
+                      <img src={settings.siteLogo} alt={settings?.siteName || "Store Logo"} className="h-8 max-w-[120px] object-contain" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold text-lg flex items-center justify-center">
+                        {(settings?.siteName || "S").charAt(0)}
+                      </div>
+                    )}
                     <span className="font-extrabold text-lg text-slate-900">
-                      {settings?.siteName || "Ghorer Bazar"}
+                      {settings?.siteName || "Store"}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    {settings?.siteAddress || "House 12, Road 4, Dhanmondi, Dhaka"}
-                  </p>
+                  {settings?.siteAddress && (
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      {settings.siteAddress}
+                    </p>
+                  )}
                   <p className="text-[11px] text-slate-500">
-                    Hotline: {settings?.sitePhone || "+8809642922922"} • Email: {settings?.siteEmail || "support@ghorerbazar.com"}
+                    {settings?.sitePhone && `Hotline: ${settings.sitePhone}`}
+                    {settings?.sitePhone && settings?.siteEmail && " • "}
+                    {settings?.siteEmail && `Email: ${settings.siteEmail}`}
                   </p>
                 </div>
                 <div className="text-right">
@@ -651,8 +659,10 @@ export default function OrdersView() {
 
               {/* Invoice Footer */}
               <div className="pt-6 border-t text-center text-[10px] text-slate-400 space-y-1">
-                <p>Thank you for choosing 100% natural, healthy food from Ghorer Bazar!</p>
-                <p>For any query or returns, please call our hotline: {settings?.sitePhone || "+8809642922922"}</p>
+                <p>Thank you for shopping with {settings?.siteName || "us"}!</p>
+                {settings?.sitePhone && (
+                  <p>For any queries or returns, please call our hotline: {settings.sitePhone}</p>
+                )}
               </div>
             </div>
           </div>
