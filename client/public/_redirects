@@ -1,1 +1,5 @@
-/*    /index.html   200
+# Proxy all API requests to the live backend server on Cloud Run
+/api/*  https://ais-dev-fla4gi37b6w6gqko6ziase-45369408487.asia-southeast1.run.app/api/:splat  200
+
+# SPA fallback for all frontend client-side routes
+/*      /index.html                                                                              200

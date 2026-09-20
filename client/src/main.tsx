@@ -37,10 +37,29 @@ queryClient.getMutationCache().subscribe(event => {
   }
 });
 
+const getTrpcApiUrl = () => {
+  // 1. Check if an external backend URL is specified via Vite env var:
+  const envUrl = (import.meta as any).env?.VITE_API_URL;
+  if (envUrl) {
+    return `${envUrl.replace(/\/$/, "")}/api/trpc`;
+  }
+
+  // 2. Check if a custom backend URL was configured in localStorage:
+  if (typeof window !== "undefined") {
+    const custom = window.localStorage.getItem("gb_api_url");
+    if (custom) {
+      return `${custom.replace(/\/$/, "")}/api/trpc`;
+    }
+  }
+
+  // 3. Same-origin fallback:
+  return "/api/trpc";
+};
+
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: getTrpcApiUrl(),
       transformer: superjson,
       headers() {
         // Preview auto-login fallback: when the browser blocks iframe cookies
@@ -62,11 +81,29 @@ const trpcClient = trpc.createClient({
         }
         return {};
       },
-      fetch(input, init) {
-        return globalThis.fetch(input, {
+      async fetch(input, init) {
+        const response = await globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
         });
+
+        // Detect if Netlify or another static SPA host returned HTML instead of JSON:
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("text/html")) {
+          // Clone the response to safely inspect its content
+          const cloned = response.clone();
+          const text = await cloned.text();
+          if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
+            console.warn(
+              "[API Detection] Backend returned HTML instead of JSON (typical on static hosts like Netlify when API proxy is not configured)."
+            );
+            throw new Error(
+              "BACKEND_API_NOT_REACHABLE: Netlify or static host returned HTML instead of JSON."
+            );
+          }
+        }
+
+        return response;
       },
     }),
   ],

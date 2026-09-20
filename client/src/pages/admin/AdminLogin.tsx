@@ -12,6 +12,19 @@ export default function AdminLogin() {
   const [email, setEmail] = useState("admin@ghorerbazar.com");
   const [password, setPassword] = useState("admin123456");
   const [errorMsg, setErrorMsg] = useState("");
+  const [showApiConfig, setShowApiConfig] = useState(false);
+  const [customApiUrl, setCustomApiUrl] = useState(() => {
+    return (typeof window !== "undefined" ? localStorage.getItem("gb_api_url") : "") || "";
+  });
+
+  const handleSaveApiUrl = () => {
+    if (customApiUrl.trim()) {
+      localStorage.setItem("gb_api_url", customApiUrl.trim());
+    } else {
+      localStorage.removeItem("gb_api_url");
+    }
+    window.location.reload();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,7 +159,51 @@ export default function AdminLogin() {
           </div>
         </div>
 
-        <div className="mt-6 text-center">
+        {/* Backend / Netlify Connection Settings */}
+        <div className="mt-6 pt-4 border-t border-slate-700/40 text-center">
+          <button
+            type="button"
+            onClick={() => setShowApiConfig(!showApiConfig)}
+            className="text-[11px] text-slate-400 hover:text-slate-300 transition-colors"
+          >
+            {showApiConfig ? "Hide API Server Settings" : "Configure Backend API URL"}
+          </button>
+
+          {showApiConfig && (
+            <div className="mt-3 p-3 bg-slate-900/90 rounded-xl border border-slate-700 text-left space-y-2">
+              <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                Backend API Server Base URL
+              </label>
+              <input
+                type="text"
+                value={customApiUrl}
+                onChange={(e) => setCustomApiUrl(e.target.value)}
+                placeholder="https://your-backend.run.app"
+                className="w-full px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-emerald-500"
+              />
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleSaveApiUrl}
+                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg"
+                >
+                  Save &amp; Reload
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomApiUrl("https://ais-dev-fla4gi37b6w6gqko6ziase-45369408487.asia-southeast1.run.app");
+                  }}
+                  className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg border border-slate-700"
+                >
+                  Use Live Cloud Run
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 text-center">
           <a
             href="/"
             className="text-xs text-slate-400 hover:text-emerald-400 transition-colors"
