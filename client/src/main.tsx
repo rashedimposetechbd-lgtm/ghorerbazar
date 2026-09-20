@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { startLogin } from "./const";
+import { handleClientTrpcFallback } from "@/lib/clientFallbackStore";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -82,28 +83,41 @@ const trpcClient = trpc.createClient({
         return {};
       },
       async fetch(input, init) {
-        const response = await globalThis.fetch(input, {
-          ...(init ?? {}),
-          credentials: "include",
-        });
+        try {
+          const response = await globalThis.fetch(input, {
+            ...(init ?? {}),
+            credentials: "include",
+          });
 
-        // Detect if Netlify or another static SPA host returned HTML instead of JSON:
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("text/html")) {
-          // Clone the response to safely inspect its content
-          const cloned = response.clone();
-          const text = await cloned.text();
-          if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
-            console.warn(
-              "[API Detection] Backend returned HTML instead of JSON (typical on static hosts like Netlify when API proxy is not configured)."
-            );
-            throw new Error(
-              "BACKEND_API_NOT_REACHABLE: Netlify or static host returned HTML instead of JSON."
-            );
+          // Inspect the response to verify it is valid JSON and not static host HTML
+          const contentType = (response.headers.get("content-type") || "").toLowerCase();
+
+          // If status is not 200/201 or content-type looks like HTML, inspect safely
+          if (!response.ok || contentType.includes("text/html") || contentType.includes("text/plain")) {
+            const cloned = response.clone();
+            const text = await cloned.text();
+            const trimmed = text.trim().toLowerCase();
+            if (
+              trimmed.startsWith("<!doctype") ||
+              trimmed.startsWith("<html") ||
+              trimmed.startsWith("<?xml") ||
+              (!trimmed.startsWith("[") && !trimmed.startsWith("{"))
+            ) {
+              console.warn(
+                "[Client Fallback] Server returned HTML / non-JSON (typical on Netlify static deploy). Handling via local store fallback."
+              );
+              return handleClientTrpcFallback(input, init);
+            }
           }
-        }
 
-        return response;
+          return response;
+        } catch (netErr) {
+          console.warn(
+            "[Client Fallback] API network request failed. Handling via local store fallback.",
+            netErr
+          );
+          return handleClientTrpcFallback(input, init);
+        }
       },
     }),
   ],

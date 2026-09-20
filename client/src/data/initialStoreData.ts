@@ -1,4 +1,4 @@
-{
+export const initialStoreData = {
   "settings": {
     "id": 1,
     "siteName": "Babui Shop",
@@ -1761,4 +1761,5 @@
       "createdAt": "2026-09-18T05:30:56.717Z"
     }
   ]
-}
+} as const;
+export default initialStoreData;

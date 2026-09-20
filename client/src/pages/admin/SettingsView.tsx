@@ -146,26 +146,36 @@ export default function SettingsView() {
       reader.onload = async () => {
         try {
           const base64 = reader.result as string;
-          const res = await fetch("/api/upload", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              filename: file.name,
-              dataBase64: base64,
-              folder: "branding",
-            }),
-          });
-          const data = await res.json();
-          if (data.success && data.url) {
-            if (targetField === "logo") {
-              setLogoUrl(data.url);
-              toast.success("Logo uploaded successfully!");
-            } else {
-              setFaviconUrl(data.url);
-              toast.success("Favicon uploaded successfully!");
+          let finalUrl = base64;
+
+          try {
+            const res = await fetch("/api/upload", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                filename: file.name,
+                dataBase64: base64,
+                folder: "branding",
+              }),
+            });
+            const text = await res.text();
+            const trimmed = text.trim();
+            if (trimmed.startsWith("{")) {
+              const data = JSON.parse(trimmed);
+              if (data.success && data.url) {
+                finalUrl = data.url;
+              }
             }
+          } catch {
+            // Netlify or offline fallback: uses the base64 data URL directly
+          }
+
+          if (targetField === "logo") {
+            setLogoUrl(finalUrl);
+            toast.success("Logo uploaded successfully!");
           } else {
-            toast.error(data.error || "Failed to upload image");
+            setFaviconUrl(finalUrl);
+            toast.success("Favicon uploaded successfully!");
           }
         } catch (err: any) {
           toast.error(err.message || "Upload request failed");

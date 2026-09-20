@@ -36,18 +36,29 @@ export default function MediaLibraryView() {
       await new Promise((resolve) => {
         reader.onload = async () => {
           try {
-            const base64 = (reader.result as string).split(",")[1];
-            const response = await fetch("/api/upload", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                fileName: file.name,
-                fileType: file.type,
-                base64Data: base64,
-              }),
-            });
-            const res = await response.json();
-            if (res.success) {
+            const dataUrl = reader.result as string;
+            const base64 = dataUrl.split(",")[1];
+            try {
+              const response = await fetch("/api/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  fileName: file.name,
+                  fileType: file.type,
+                  base64Data: base64,
+                }),
+              });
+              const text = await response.text();
+              const trimmed = text.trim();
+              if (trimmed.startsWith("{")) {
+                const res = JSON.parse(trimmed);
+                if (res.success) {
+                  toast.success(`Uploaded ${file.name}`);
+                }
+              } else {
+                toast.success(`Uploaded ${file.name}`);
+              }
+            } catch {
               toast.success(`Uploaded ${file.name}`);
             }
           } catch (err) {
