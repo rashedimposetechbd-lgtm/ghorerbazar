@@ -75,7 +75,7 @@ export function executeProcedure(procName: string, input: any): any {
       const fallbackUser = {
         id: 1,
         name: "Super Administrator",
-        email: input?.email || "admin@ghorerbazar.com",
+        email: input?.email || "admin@babuishop.com",
         role: input?.role || "super_admin",
         permissions: ["all"],
         isActive: true,
