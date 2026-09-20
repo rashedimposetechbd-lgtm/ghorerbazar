@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+
 @layer base {
   :root {
     --background: 0 0% 99%;
@@ -20,6 +23,25 @@
     --radius: 0.75rem;
   }
 
+  .dark {
+    color-scheme: dark;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 150 63% 37%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 150 63% 37%;
+  }
+
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
@@ -28,10 +50,46 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     font-family: Inter, "Segoe UI", sans-serif;
   }
+  .dark body {
+    background: #090e1a;
+    color: #f8fafc;
+  }
   a { text-decoration: none; }
   img { max-width: 100%; display: block; }
   button { transition: all 0.2s ease; }
   button:active { transform: scale(0.98); }
+
+  /* Universal Form Input Typography and High-Contrast Visibility */
+  input,
+  textarea,
+  select {
+    color: #0f172a;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8;
+  }
+
+  .dark input,
+  .dark textarea,
+  .dark select {
+    color: #f8fafc !important;
+  }
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 0.8;
+  }
+  .dark select option {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+  }
+  .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+  .dark input[type="date"]::-webkit-calendar-picker-indicator,
+  .dark input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+
   .container {
     width: min(1200px, calc(100% - 2rem));
     margin-inline: auto;

@@ -4,10 +4,10 @@ import { Search, ShoppingCart, Menu, X, Phone, Heart, LogIn } from 'lucide-react
 import { trpc } from '@/lib/trpc';
 
 interface NavigationProps {
-  cartItemCount: number;
+  cartItemCount?: number;
 }
 
-export default function Navigation({ cartItemCount }: NavigationProps) {
+export default function Navigation({ cartItemCount = 0 }: NavigationProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,6 +129,13 @@ export default function Navigation({ cartItemCount }: NavigationProps) {
             <button type="button" className="gb-icon-btn md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Menu">
               {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
+
+            <Link
+              href="/admin"
+              className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-slate-900 hover:bg-slate-800 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors"
+            >
+              <span>Admin</span>
+            </Link>
 
             <button type="button" className="hidden md:inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
               <LogIn size={16} /> Login

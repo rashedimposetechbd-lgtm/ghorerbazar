@@ -137,7 +137,7 @@ export default function Home() {
                   isNewArrival={product.isNewArrival || false}
                   stock={product.stock}
                   hasLimitedTimeOffer={product.hasLimitedTimeOffer || false}
-                  offerEndsAt={product.offerEndsAt}
+                  offerEndsAt={product.offerEndsAt ? new Date(product.offerEndsAt) : null}
                   onAddToCart={() => handleAddToCart(product.id)}
                   isLoading={addToCartMutation.isPending}
                 />
@@ -193,7 +193,7 @@ export default function Home() {
                   isNewArrival={product.isNewArrival || false}
                   stock={product.stock}
                   hasLimitedTimeOffer={product.hasLimitedTimeOffer || false}
-                  offerEndsAt={product.offerEndsAt}
+                  offerEndsAt={product.offerEndsAt ? new Date(product.offerEndsAt) : null}
                   onAddToCart={() => handleAddToCart(product.id)}
                   isLoading={addToCartMutation.isPending}
                 />
@@ -212,7 +212,7 @@ export default function Home() {
             </div>
             <div className="gb-product-grid">
               {dateProducts.map((product) => (
-                <ProductCard key={product.id} id={product.id} name={product.name} price={parseFloat(String(product.price))} discountPrice={product.discountPrice ? parseFloat(String(product.discountPrice)) : null} discountPercentage={product.discountPercentage ? parseFloat(String(product.discountPercentage)) : null} isBestSelling={product.isBestSelling || false} isNewArrival={product.isNewArrival || false} stock={product.stock} hasLimitedTimeOffer={product.hasLimitedTimeOffer || false} offerEndsAt={product.offerEndsAt} onAddToCart={() => handleAddToCart(product.id)} isLoading={addToCartMutation.isPending} />
+                <ProductCard key={product.id} id={product.id} name={product.name} price={parseFloat(String(product.price))} discountPrice={product.discountPrice ? parseFloat(String(product.discountPrice)) : null} discountPercentage={product.discountPercentage ? parseFloat(String(product.discountPercentage)) : null} isBestSelling={product.isBestSelling || false} isNewArrival={product.isNewArrival || false} stock={product.stock} hasLimitedTimeOffer={product.hasLimitedTimeOffer || false} offerEndsAt={product.offerEndsAt ? new Date(product.offerEndsAt) : null} onAddToCart={() => handleAddToCart(product.id)} isLoading={addToCartMutation.isPending} />
               ))}
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function Home() {
                   isNewArrival={product.isNewArrival || false}
                   stock={product.stock}
                   hasLimitedTimeOffer={product.hasLimitedTimeOffer || false}
-                  offerEndsAt={product.offerEndsAt}
+                  offerEndsAt={product.offerEndsAt ? new Date(product.offerEndsAt) : null}
                   onAddToCart={() => handleAddToCart(product.id)}
                   isLoading={addToCartMutation.isPending}
                 />

@@ -84,7 +84,7 @@ export default function CategoryPage() {
                 isNewArrival={product.isNewArrival || false}
                 stock={product.stock}
                 hasLimitedTimeOffer={product.hasLimitedTimeOffer || false}
-                offerEndsAt={product.offerEndsAt}
+                offerEndsAt={product.offerEndsAt ? new Date(product.offerEndsAt) : null}
                 onAddToCart={() => handleAddToCart(product.id)}
                 isLoading={addToCartMutation.isPending}
               />
