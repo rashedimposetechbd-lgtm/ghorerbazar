@@ -48,7 +48,7 @@ export default function CombosPage() {
 
       {/* Combos Grid */}
       <div className="container py-8">
-        {combos && combos.length > 0 ? (
+        {Array.isArray(combos) && combos.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {combos.map((combo) => (
               <ComboCard

@@ -136,7 +136,7 @@ export default function ComboDetailPage() {
                 What's Included:
               </h3>
               <ul className="space-y-2">
-                {combo.productIds && combo.productIds.length > 0 ? (
+                {Array.isArray(combo.productIds) && combo.productIds.length > 0 ? (
                   combo.productIds.map((id, idx) => (
                     <li key={idx} className="flex items-center gap-2">
                       <span style={{ color: 'hsl(var(--accent))' }}>•</span>

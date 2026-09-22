@@ -17,7 +17,8 @@ import {
 
 export default function Footer() {
   const { data: settings } = trpc.storefront.settings.useQuery();
-  const { data: categories = [] } = trpc.categories.list.useQuery();
+  const { data: categories } = trpc.categories.list.useQuery();
+  const categoriesList = Array.isArray(categories) ? categories : [];
 
   const siteName = settings?.siteName || "Babui Shop";
   const siteTagline = settings?.siteTitle || "100% Pure and Safe Food in Bangladesh";
@@ -150,7 +151,7 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Top Categories</h4>
             <ul className="space-y-2.5 text-xs text-slate-400">
-              {categories.slice(0, 6).map((cat) => (
+              {categoriesList.slice(0, 6).map((cat) => (
                 <li key={cat.id}>
                   <Link href={`/category/${cat.id}`} className="hover:text-emerald-400 transition-colors">
                     {cat.name}

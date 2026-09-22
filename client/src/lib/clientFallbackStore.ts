@@ -316,6 +316,7 @@ export function executeProcedure(procName: string, input: any): any {
     case "admin.categories.list":
       return store.categories || [];
 
+    case "categories.byId":
     case "admin.categories.get":
     case "categories.bySlug": {
       const idOrSlug = typeof input === "object" ? input?.id || input?.slug : input;
@@ -353,6 +354,7 @@ export function executeProcedure(procName: string, input: any): any {
       return { success: true };
     }
 
+    case "brands.list":
     case "admin.brands.list":
       return store.brands || [];
 
@@ -575,6 +577,7 @@ export function executeProcedure(procName: string, input: any): any {
     case "admin.combos.list":
       return store.combos && store.combos.length > 0 ? store.combos : defaultCombos;
 
+    case "combos.byId":
     case "combos.get":
     case "admin.combos.get": {
       const id = typeof input === "object" ? input?.id : input;
@@ -831,6 +834,16 @@ export function executeProcedure(procName: string, input: any): any {
     // Default fallback
     default:
       console.warn(`[ClientFallbackStore] Unhandled procedure: ${procName}`, input);
+      if (
+        procName.endsWith(".list") ||
+        procName.endsWith("s") ||
+        procName.includes("all") ||
+        procName.includes("search") ||
+        procName.includes("recent") ||
+        procName.includes("top")
+      ) {
+        return [];
+      }
       return { success: true, fallback: true, procName };
   }
 }

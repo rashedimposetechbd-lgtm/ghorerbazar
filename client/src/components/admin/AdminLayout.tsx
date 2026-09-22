@@ -74,11 +74,14 @@ export default function AdminLayout({
 
   // Live queries for real badges
   const { data: settings } = trpc.admin.settings.get.useQuery();
-  const { data: notifications = [], refetch: refetchNotifs } = trpc.admin.notifications.list.useQuery();
+  const { data: rawNotifs, refetch: refetchNotifs } = trpc.admin.notifications.list.useQuery();
+  const notifications = Array.isArray(rawNotifs) ? rawNotifs : [];
   const markReadMutation = trpc.admin.notifications.markRead.useMutation();
   const markAllReadMutation = trpc.admin.notifications.markAllRead.useMutation();
-  const { data: productsList = [] } = trpc.admin.products.list.useQuery();
-  const { data: ordersList = [] } = trpc.admin.orders.list.useQuery();
+  const { data: rawProducts } = trpc.admin.products.list.useQuery();
+  const productsList = Array.isArray(rawProducts) ? rawProducts : [];
+  const { data: rawOrders } = trpc.admin.orders.list.useQuery();
+  const ordersList = Array.isArray(rawOrders) ? rawOrders : [];
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const pendingOrdersCount = ordersList.filter((o) => o.orderStatus === "pending").length;

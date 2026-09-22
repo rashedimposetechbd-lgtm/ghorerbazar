@@ -38,9 +38,14 @@ export default function Home() {
     addToCartMutation.mutate({ productId, quantity: 1 });
   };
 
-  const honeyProducts = allProducts?.filter((p) => p.categoryId === categories?.find((c) => c.name === 'Honey')?.id).slice(0, 6) || [];
-  const oilProducts = allProducts?.filter((p) => p.categoryId === categories?.find((c) => c.name === 'Oil & Ghee')?.id).slice(0, 6) || [];
-  const dateProducts = allProducts?.filter((p) => p.categoryId === categories?.find((c) => c.name === 'Dates')?.id).slice(0, 6) || [];
+  const categoriesList = Array.isArray(categories) ? categories : [];
+  const allProductsList = Array.isArray(allProducts) ? allProducts : [];
+  const topSellingList = Array.isArray(topSelling) ? topSelling : [];
+  const combosList = Array.isArray(combos) ? combos : [];
+
+  const honeyProducts = allProductsList.filter((p) => p.categoryId === categoriesList.find((c) => c.name === 'Honey')?.id).slice(0, 6);
+  const oilProducts = allProductsList.filter((p) => p.categoryId === categoriesList.find((c) => c.name === 'Oil & Ghee')?.id).slice(0, 6);
+  const dateProducts = allProductsList.filter((p) => p.categoryId === categoriesList.find((c) => c.name === 'Dates')?.id).slice(0, 6);
 
   const featuredCategories = [
     'Oil & Ghee',
@@ -106,7 +111,7 @@ export default function Home() {
           </div>
           <div className="gb-categories">
             {featuredCategories.map((catName) => {
-              const category = categories?.find((c) => c.name === catName);
+              const category = categoriesList.find((c) => c.name === catName);
               return (
                 <Link key={catName} href={`/category/${category?.id || 1}`} className="gb-category-card">
                   <div className="gb-category-card__icon">{catName.charAt(0)}</div>
@@ -118,7 +123,7 @@ export default function Home() {
         </div>
       </section>
 
-      {topSelling && topSelling.length > 0 && (
+      {topSellingList.length > 0 && (
         <section className="gb-section" style={{ background: 'linear-gradient(180deg, rgba(15, 139, 88, 0.03), rgba(15, 139, 88, 0.01))' }}>
           <div className="container">
             <div className="gb-section__head">
@@ -126,7 +131,7 @@ export default function Home() {
               <Link href="/category/1">View All</Link>
             </div>
             <div className="gb-product-grid">
-              {topSelling.map((product) => (
+              {topSellingList.map((product) => (
                 <ProductCard
                   key={product.id}
                   id={product.id}
@@ -150,7 +155,7 @@ export default function Home() {
 
       <BrandShowcase />
 
-      {combos && combos.length > 0 && (
+      {combosList.length > 0 && (
         <section className="gb-section">
           <div className="container">
             <div className="gb-section__head">
@@ -158,7 +163,7 @@ export default function Home() {
               <Link href="/combos">View All Combos</Link>
             </div>
             <div className="gb-product-grid">
-              {combos.slice(0, 4).map((combo) => (
+              {combosList.slice(0, 4).map((combo) => (
                 <ComboCard
                   key={combo.id}
                   id={combo.id}
@@ -179,7 +184,7 @@ export default function Home() {
           <div className="container">
             <div className="gb-section__head">
               <h2>All Natural Honey</h2>
-              <Link href={`/category/${categories?.find((c) => c.name === 'Honey')?.id || 1}`}>View all items</Link>
+              <Link href={`/category/${categoriesList.find((c) => c.name === 'Honey')?.id || 1}`}>View all items</Link>
             </div>
             <div className="gb-product-grid">
               {honeyProducts.map((product) => (
@@ -209,7 +214,7 @@ export default function Home() {
           <div className="container">
             <div className="gb-section__head">
               <h2>Premium Dates</h2>
-              <Link href={`/category/${categories?.find((c) => c.name === 'Dates')?.id || 1}`}>View all items</Link>
+              <Link href={`/category/${categoriesList.find((c) => c.name === 'Dates')?.id || 1}`}>View all items</Link>
             </div>
             <div className="gb-product-grid">
               {dateProducts.map((product) => (
@@ -225,7 +230,7 @@ export default function Home() {
           <div className="container">
             <div className="gb-section__head">
               <h2>Cooking Essentials</h2>
-              <Link href={`/category/${categories?.find((c) => c.name === 'Oil & Ghee')?.id || 1}`}>View all items</Link>
+              <Link href={`/category/${categoriesList.find((c) => c.name === 'Oil & Ghee')?.id || 1}`}>View all items</Link>
             </div>
             <div className="gb-product-grid">
               {oilProducts.map((product) => (

@@ -71,7 +71,7 @@ export default function CategoryPage() {
 
       {/* Products Grid */}
       <div className="container py-8">
-        {products && products.length > 0 ? (
+        {Array.isArray(products) && products.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {products.map((product) => (
               <ProductCard

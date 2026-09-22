@@ -3,7 +3,9 @@ import { trpc } from '@/lib/trpc';
 export default function BrandShowcase() {
   const { data: brands } = trpc.brands.list.useQuery();
 
-  if (!brands || brands.length === 0) {
+  const brandsList = Array.isArray(brands) ? brands : [];
+
+  if (brandsList.length === 0) {
     return null;
   }
 
@@ -15,7 +17,7 @@ export default function BrandShowcase() {
           <a href="/">See all</a>
         </div>
         <div className="gb-brand-grid">
-          {brands.map((brand) => (
+          {brandsList.map((brand: any) => (
             <div key={brand.id} className="gb-brand-item">
               {brand.logoUrl ? (
                 <img src={brand.logoUrl} alt={brand.name} />
