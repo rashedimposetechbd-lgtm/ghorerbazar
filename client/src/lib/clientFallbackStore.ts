@@ -2,6 +2,54 @@ import initialDataRaw from "../data/initialStoreData";
 
 const STORAGE_KEY = "gb_store_data_v2";
 
+const defaultCombos = [
+  {
+    id: 1,
+    name: "Sunnah Foods Health Combo",
+    description: "Sundarbans Raw Wild Honey (500g) + Ajwa Al-Aliya Premium Dates (500g) + Kalojira Cold Pressed Oil (250ml)",
+    price: 1850,
+    originalPrice: 2200,
+    savingsPercentage: 16,
+    imageUrl: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80",
+    isActive: true,
+    products: [
+      { id: 1, name: "Sundarbans Raw Wild Honey 500g", quantity: 1, price: 650 },
+      { id: 4, name: "Ajwa Al-Aliya Premium Dates 500g", quantity: 1, price: 950 },
+      { id: 6, name: "Pure Kalojira Black Seed Oil 250ml", quantity: 1, price: 600 },
+    ],
+  },
+  {
+    id: 2,
+    name: "Pure Kitchen Essentials Combo",
+    description: "Extra Virgin Mustard Oil (2L) + Pure Cow Desi Ghee (400g) + Sundarbans Raw Wild Honey (500g)",
+    price: 2450,
+    originalPrice: 2900,
+    savingsPercentage: 15,
+    imageUrl: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80",
+    isActive: true,
+    products: [
+      { id: 3, name: "Wood Pressed Mustard Oil 2L", quantity: 1, price: 720 },
+      { id: 2, name: "Pure Cow Desi Danadar Ghee 400g", quantity: 1, price: 1100 },
+      { id: 1, name: "Sundarbans Raw Wild Honey 500g", quantity: 1, price: 650 },
+    ],
+  },
+  {
+    id: 3,
+    name: "Ramadan Energy & Immunity Booster",
+    description: "Medjool Jumbo Dates (500g) + Sundarbans Raw Wild Honey (500g) + California Walnut Kernels (250g)",
+    price: 2150,
+    originalPrice: 2600,
+    savingsPercentage: 17,
+    imageUrl: "https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&w=600&q=80",
+    isActive: true,
+    products: [
+      { id: 5, name: "Medjool Jumbo Dates 500g", quantity: 1, price: 850 },
+      { id: 1, name: "Sundarbans Raw Wild Honey 500g", quantity: 1, price: 650 },
+      { id: 7, name: "California Walnut Kernels 250g", quantity: 1, price: 650 },
+    ],
+  },
+];
+
 interface FullStoreData {
   settings: any;
   navMenuItems: any[];
@@ -21,6 +69,8 @@ interface FullStoreData {
   adminUsers: any[];
   activityLogs: any[];
   notifications: any[];
+  cart?: any[];
+  combos?: any[];
 }
 
 function getStoreData(): FullStoreData {
@@ -30,12 +80,16 @@ function getStoreData(): FullStoreData {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      if (!parsed.combos || parsed.combos.length === 0) parsed.combos = defaultCombos;
+      if (!parsed.cart) parsed.cart = [];
+      return parsed;
     }
   } catch (e) {
     console.warn("Failed to load local store data, using default", e);
   }
-  return (initialDataRaw as unknown) as FullStoreData;
+  const raw = { ...(initialDataRaw as any), combos: defaultCombos, cart: [] };
+  return raw as FullStoreData;
 }
 
 function saveStoreData(data: FullStoreData): void {
@@ -64,7 +118,12 @@ export function executeProcedure(procName: string, input: any): any {
           return JSON.parse(admin);
         } catch {}
       }
-      return null;
+      return {
+        id: 1,
+        name: "Valued Customer",
+        email: "customer@babuishop.com",
+        role: "user",
+      };
     }
 
     case "auth.logout":
@@ -169,6 +228,20 @@ export function executeProcedure(procName: string, input: any): any {
 
     case "products.featured":
       return (store.products || []).filter((p) => p.isFeatured);
+
+    case "products.topSelling": {
+      const limit = Number(input?.limit) || 8;
+      const prods = (store.products || []).filter((p) => p.isBestSelling || p.isFeatured);
+      return prods.length > 0 ? prods.slice(0, limit) : (store.products || []).slice(0, limit);
+    }
+
+    case "products.related": {
+      const categoryId = Number(input?.categoryId);
+      const excludeId = Number(input?.excludeId || input?.id);
+      return (store.products || [])
+        .filter((p) => p.categoryId === categoryId && p.id !== excludeId)
+        .slice(0, 4);
+    }
 
     case "products.search": {
       const query = (input?.query || "").toLowerCase();
@@ -491,6 +564,113 @@ export function executeProcedure(procName: string, input: any): any {
     case "admin.coupons.delete": {
       const id = typeof input === "object" ? input?.id : input;
       store.coupons = store.coupons.filter((c) => c.id !== Number(id));
+      saveStoreData(store);
+      return { success: true };
+    }
+
+    // -------------------------------------------------------------
+    // Combos
+    // -------------------------------------------------------------
+    case "combos.list":
+    case "admin.combos.list":
+      return store.combos && store.combos.length > 0 ? store.combos : defaultCombos;
+
+    case "combos.get":
+    case "admin.combos.get": {
+      const id = typeof input === "object" ? input?.id : input;
+      const allCombos = store.combos && store.combos.length > 0 ? store.combos : defaultCombos;
+      return allCombos.find((c: any) => c.id === Number(id)) || null;
+    }
+
+    // -------------------------------------------------------------
+    // Cart
+    // -------------------------------------------------------------
+    case "cart.list":
+      return store.cart || [];
+
+    case "cart.add": {
+      store.cart = store.cart || [];
+      const productId = input?.productId ? Number(input.productId) : null;
+      const quantity = input?.quantity ? Number(input.quantity) : 1;
+      const comboId = input?.comboId ? Number(input.comboId) : null;
+
+      if (comboId) {
+        const allCombos = store.combos && store.combos.length > 0 ? store.combos : defaultCombos;
+        const combo = allCombos.find((c: any) => c.id === comboId);
+        if (combo) {
+          const price = Number(combo.price) || 0;
+          const existingIdx = store.cart.findIndex((i: any) => i.comboId === comboId);
+          if (existingIdx >= 0) {
+            store.cart[existingIdx].quantity += quantity;
+          } else {
+            store.cart.push({
+              id: Date.now(),
+              comboId: combo.id,
+              price,
+              quantity,
+              combo,
+              product: {
+                id: combo.id + 10000,
+                name: combo.name,
+                price: combo.price,
+                discountPrice: null,
+                stock: 99,
+                imageUrl: combo.imageUrl,
+              },
+            });
+          }
+        }
+      } else if (productId) {
+        const product = (store.products || []).find((p: any) => p.id === productId);
+        if (product) {
+          const price = Number(product.discountPrice || product.price) || 0;
+          const existingIdx = store.cart.findIndex((i: any) => i.productId === productId);
+          if (existingIdx >= 0) {
+            store.cart[existingIdx].quantity += quantity;
+          } else {
+            store.cart.push({
+              id: Date.now(),
+              productId: product.id,
+              price,
+              quantity,
+              product,
+            });
+          }
+        }
+      }
+      saveStoreData(store);
+      return { success: true, items: store.cart };
+    }
+
+    case "cart.updateQuantity": {
+      store.cart = store.cart || [];
+      const id = input?.cartItemId ? Number(input.cartItemId) : input?.id ? Number(input.id) : null;
+      const productId = input?.productId ? Number(input.productId) : null;
+      const quantity = Number(input?.quantity);
+
+      if (quantity <= 0) {
+        store.cart = store.cart.filter((item: any) => (id ? item.id !== id : item.productId !== productId));
+      } else {
+        const item = store.cart.find((i: any) => (id ? i.id === id : i.productId === productId));
+        if (item) {
+          item.quantity = quantity;
+        }
+      }
+      saveStoreData(store);
+      return { success: true, items: store.cart };
+    }
+
+    case "cart.remove": {
+      store.cart = store.cart || [];
+      const id = input?.cartItemId ? Number(input.cartItemId) : input?.id ? Number(input.id) : null;
+      const productId = input?.productId ? Number(input.productId) : null;
+      store.cart = store.cart.filter((item: any) => (id ? item.id !== id : item.productId !== productId));
+      saveStoreData(store);
+      return { success: true, items: store.cart };
+    }
+
+    case "cart.clear": {
+      store.cart = [];
       saveStoreData(store);
       return { success: true };
     }

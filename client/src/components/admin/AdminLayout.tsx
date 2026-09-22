@@ -66,6 +66,7 @@ export default function AdminLayout({
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === "dark";
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
@@ -170,15 +171,29 @@ export default function AdminLayout({
 
   return (
     <div className={`min-h-screen flex bg-slate-50 text-slate-900 ${isDarkMode ? "dark bg-slate-950 text-slate-100" : ""}`}>
+      {/* Mobile Drawer Overlay */}
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r transition-all duration-300 ease-in-out ${
-          isCollapsed ? "w-20" : "w-64"
-        } bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm`}
+        className={`fixed inset-y-0 left-0 z-50 lg:z-40 flex flex-col border-r transition-all duration-300 ease-in-out ${
+          isCollapsed ? "lg:w-20" : "lg:w-64"
+        } w-72 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-2xl lg:shadow-sm ${
+          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
       >
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800">
-          <Link href="/admin/dashboard" className="flex items-center gap-3 overflow-hidden">
+          <Link
+            href="/admin/dashboard"
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="flex items-center gap-3 overflow-hidden"
+          >
             {settings?.siteLogo ? (
               <img src={settings.siteLogo} alt={siteName} className="w-10 h-10 object-contain rounded-xl shrink-0" />
             ) : (
@@ -186,20 +201,31 @@ export default function AdminLayout({
                 {siteName.charAt(0)}
               </div>
             )}
-            {!isCollapsed && (
-              <div className="flex flex-col min-w-0">
-                <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white leading-tight truncate">
-                  {siteName}
-                </span>
-                <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                  Admin CMS
-                </span>
-              </div>
-            )}
+            <div className={`flex flex-col min-w-0 ${isCollapsed ? "lg:hidden" : ""}`}>
+              <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white leading-tight truncate">
+                {siteName}
+              </span>
+              <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                Admin CMS
+              </span>
+            </div>
           </Link>
+
+          {/* Close button on mobile */}
           <button
+            type="button"
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors lg:hidden"
+            title="Close sidebar"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          {/* Desktop collapse toggle */}
+          <button
+            type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+            className="hidden lg:block p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -216,11 +242,9 @@ export default function AdminLayout({
 
             return (
               <div key={group.group} className="space-y-1">
-                {!isCollapsed && (
-                  <h3 className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
-                    {group.group}
-                  </h3>
-                )}
+                <h3 className={`px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 ${isCollapsed ? "lg:hidden" : ""}`}>
+                  {group.group}
+                </h3>
                 {visibleItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location === item.href || (item.href !== "/admin/dashboard" && location.startsWith(item.href));
@@ -229,6 +253,7 @@ export default function AdminLayout({
                     <Link
                       key={item.name}
                       href={item.href}
+                      onClick={() => setIsMobileSidebarOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative ${
                         isActive
                           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 font-semibold shadow-xs"
@@ -244,12 +269,12 @@ export default function AdminLayout({
                             : "text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300"
                         }`}
                       />
-                      {!isCollapsed && (
-                        <span className="truncate flex-1">{item.name}</span>
-                      )}
-                      {!isCollapsed && item.badge && (
+                      <span className={`truncate flex-1 ${isCollapsed ? "lg:hidden" : ""}`}>{item.name}</span>
+                      {item.badge && (
                         <span
                           className={`px-2 py-0.5 text-[11px] font-semibold rounded-full shrink-0 ${
+                            isCollapsed ? "lg:hidden" : ""
+                          } ${
                             String(item.badge).includes("Low")
                               ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400"
                               : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400"
@@ -259,7 +284,7 @@ export default function AdminLayout({
                         </span>
                       )}
                       {isCollapsed && item.badge && (
-                        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="hidden lg:block absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500" />
                       )}
                     </Link>
                   );
@@ -276,38 +301,44 @@ export default function AdminLayout({
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-semibold flex items-center justify-center text-xs shrink-0 shadow-xs">
                 {admin?.name?.charAt(0) || "A"}
               </div>
-              {!isCollapsed && (
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-semibold truncate text-slate-800 dark:text-slate-200">
-                    {admin?.name || "Admin"}
-                  </span>
-                  <span className="text-[10px] text-slate-400 capitalize truncate">
-                    {admin?.role?.replace("_", " ") || "Administrator"}
-                  </span>
-                </div>
-              )}
+              <div className={`flex flex-col min-w-0 ${isCollapsed ? "lg:hidden" : ""}`}>
+                <span className="text-xs font-semibold truncate text-slate-800 dark:text-slate-200">
+                  {admin?.name || "Admin"}
+                </span>
+                <span className="text-[10px] text-slate-400 capitalize truncate">
+                  {admin?.role?.replace("_", " ") || "Administrator"}
+                </span>
+              </div>
             </div>
-            {!isCollapsed && (
-              <button
-                onClick={logout}
-                className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
-                title="Sign out"
-              >
-                <LogOut size={16} />
-              </button>
-            )}
+            <button
+              onClick={logout}
+              className={`p-1 text-slate-400 hover:text-rose-600 transition-colors ${isCollapsed ? "lg:hidden" : ""}`}
+              title="Sign out"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? "pl-20" : "pl-64"}`}>
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? "lg:pl-20" : "lg:pl-64"} pl-0`}>
         {/* TOP NAVBAR */}
-        <header className="sticky top-0 z-30 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6">
+        <header className="sticky top-0 z-30 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-3.5 sm:px-6">
           {/* Breadcrumbs / Page Title */}
-          <div className="flex items-center gap-4 min-w-0">
-            <div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mb-0.5">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Mobile Hamburger Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="p-2 -ml-1 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden shrink-0"
+              aria-label="Open sidebar"
+            >
+              <MenuIcon size={20} />
+            </button>
+
+            <div className="min-w-0">
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mb-0.5">
                 <Link href="/admin/dashboard" className="hover:text-slate-700 dark:hover:text-slate-300">
                   Admin
                 </Link>
@@ -324,7 +355,7 @@ export default function AdminLayout({
                   </React.Fragment>
                 ))}
               </div>
-              <h1 className="text-lg font-bold text-slate-900 dark:text-white leading-tight truncate">
+              <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight truncate">
                 {pageTitle}
               </h1>
             </div>
@@ -543,7 +574,7 @@ export default function AdminLayout({
         </header>
 
         {/* MAIN BODY VIEW */}
-        <main className="flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-5 sm:space-y-6">
           {children}
         </main>
       </div>

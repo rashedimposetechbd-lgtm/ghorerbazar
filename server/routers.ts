@@ -294,6 +294,57 @@ export const appRouter = router({
       return db.clearCart(ctx.user.id);
     }),
   }),
+
+  orders: router({
+    create: publicProcedure
+      .input(z.any())
+      .mutation(async ({ input }) => {
+        const randomNum = Math.floor(100000 + Math.random() * 900000);
+        const orderNumber = `GB-${randomNum}`;
+        const newOrder = {
+          id: Date.now(),
+          orderNumber,
+          customerName: input.customerName || "Valued Customer",
+          customerPhone: input.customerPhone || "",
+          customerEmail: input.customerEmail || "",
+          shippingAddress: input.shippingAddress || "",
+          division: input.city || "Dhaka",
+          district: input.city || "Dhaka",
+          items: input.items || [],
+          subtotal: Number(input.subtotal) || 0,
+          discount: 0,
+          couponDiscount: 0,
+          shippingFee: Number(input.shippingCost) || 70,
+          tax: 0,
+          total: Number(input.total) || 0,
+          paymentMethod: input.paymentMethod || "cod",
+          paymentStatus: input.paymentMethod === "cod" ? ("pending" as const) : ("paid" as const),
+          orderStatus: "pending" as const,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        try {
+          cmsDataStore.createOrder(newOrder as any);
+        } catch (e) {
+          // fallback
+        }
+        return newOrder;
+      }),
+
+    get: publicProcedure
+      .input(z.object({ orderNumber: z.string().optional(), id: z.number().optional() }))
+      .query(async ({ input }) => {
+        if (input.id) return cmsDataStore.getOrderById(input.id);
+        if (input.orderNumber) {
+          return cmsDataStore.getOrders().find((o) => o.orderNumber === input.orderNumber) || null;
+        }
+        return null;
+      }),
+
+    myOrders: publicProcedure.query(async () => {
+      return cmsDataStore.getOrders().slice(0, 10);
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

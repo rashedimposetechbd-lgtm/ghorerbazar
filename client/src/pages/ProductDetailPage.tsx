@@ -80,25 +80,30 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Product Image */}
           <div
-            className="flex items-center justify-center rounded-lg"
-            style={{
-              aspectRatio: '1',
-              backgroundColor: 'hsl(var(--muted))',
-              backgroundImage: 'linear-gradient(to bottom right, rgb(243, 244, 246), rgb(249, 250, 251))',
-            }}
+            className="flex items-center justify-center rounded-2xl overflow-hidden border border-border/70 bg-card shadow-sm aspect-square"
           >
-            <span style={{ color: 'hsl(var(--muted-foreground))' }}>Product Image</span>
+            {product.imageUrl ? (
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="w-full h-full object-cover object-center"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-muted-foreground gap-2">
+                <span className="text-sm font-medium">No Image Available</span>
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
           <div className="flex flex-col gap-6">
             {/* Title */}
             <div>
-              <h1 className="text-3xl font-bold" style={{ color: 'hsl(var(--foreground))' }}>
+              <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: 'hsl(var(--foreground))' }}>
                 {product.name}
               </h1>
               {product.description && (
-                <p className="mt-2" style={{ color: 'hsl(var(--muted-foreground))' }}>
+                <p className="mt-2 text-sm sm:text-base leading-relaxed" style={{ color: 'hsl(var(--muted-foreground))' }}>
                   {product.description}
                 </p>
               )}
@@ -167,17 +172,22 @@ export default function ProductDetailPage() {
               <Button
                 onClick={handleAddToCart}
                 disabled={isOutOfStock || addToCartMutation.isPending}
-                className="gap-2 flex-1"
+                className="gap-2 flex-1 min-h-[44px]"
                 size="lg"
               >
                 <ShoppingCart size={20} />
-                {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                {isOutOfStock ? 'Out of Stock' : addToCartMutation.isPending ? 'Adding...' : 'Add to Cart'}
               </Button>
               <Button
                 variant="outline"
-                disabled={isOutOfStock}
-                className="flex-1"
+                disabled={isOutOfStock || addToCartMutation.isPending}
+                className="flex-1 min-h-[44px]"
                 size="lg"
+                onClick={() => {
+                  addToCartMutation.mutate({ productId, quantity }, {
+                    onSuccess: () => navigate('/cart')
+                  });
+                }}
               >
                 Buy Now
               </Button>
